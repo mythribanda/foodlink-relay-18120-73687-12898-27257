@@ -4,6 +4,7 @@ import { MapPin, Navigation, User, CheckCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useVolunteerTasks } from "@/hooks/useVolunteerTasks";
@@ -189,8 +190,9 @@ const VolunteerDashboard = () => {
       <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="bg-card border-b shadow-sm sticky top-0 z-10">
-          <div className="container mx-auto px-4 py-4">
-            <h1 className="font-heading text-xl font-bold text-center">Active Delivery</h1>
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 className="font-heading text-xl font-bold">Active Delivery</h1>
+            {userId && <NotificationCenter userId={userId} />}
           </div>
         </header>
 
@@ -215,42 +217,96 @@ const VolunteerDashboard = () => {
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Location</p>
-                <p className="font-semibold text-lg">{activeTask.pickup}</p>
+                <p className="font-semibold text-lg">{activeTask.pickup_address}</p>
               </div>
+              
+              {/* Chat with Donor */}
+              {userId && activeTask.donor_id && (
+                <div className="flex justify-center">
+                  <ChatDialog
+                    taskId={activeTask.id}
+                    currentUserId={userId}
+                    otherUserId={activeTask.donor_id}
+                    otherUserName={activeTask.donor?.full_name || "Donor"}
+                  />
+                </div>
+              )}
+
               <Button variant="default" size="lg" className="w-full">
                 <Navigation className="mr-2 h-5 w-5" />
                 Navigate to Pickup
               </Button>
-              <div className="pt-4">
-                <p className="text-sm text-muted-foreground mb-3 text-center">
-                  Arrived at pickup location?
-                </p>
-                <Button
-                  variant="success"
-                  size="lg"
-                  className="w-full"
-                  onClick={handleConfirmPickup}
-                >
-                  <CheckCircle className="mr-2 h-5 w-5" />
-                  Confirm Food Collected
-                </Button>
-              </div>
+              
+              {activeTask.status === "assigned" && (
+                <div className="pt-4">
+                  <p className="text-sm text-muted-foreground mb-3 text-center">
+                    Arrived at pickup location?
+                  </p>
+                  <Button
+                    variant="success"
+                    size="lg"
+                    className="w-full"
+                    onClick={handleConfirmPickup}
+                  >
+                    <CheckCircle className="mr-2 h-5 w-5" />
+                    Confirm Food Collected
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Step 2: Dropoff */}
-          <Card className="shadow-card opacity-60">
+          <Card className={activeTask.status === "in_progress" ? "shadow-card-lg border-2 border-primary" : "shadow-card opacity-60"}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl">Step 2: Dropoff</CardTitle>
-                <Badge variant="outline">Pending</Badge>
+                <Badge variant={activeTask.status === "in_progress" ? "default" : "outline"}>
+                  {activeTask.status === "in_progress" ? "In Progress" : "Pending"}
+                </Badge>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Location</p>
-                <p className="font-semibold text-lg">{activeTask.dropoff}</p>
+                <p className="font-semibold text-lg">{activeTask.dropoff_address}</p>
               </div>
+
+              {activeTask.status === "in_progress" && (
+                <>
+                  {/* Chat with NGO */}
+                  {userId && activeTask.ngo_id && (
+                    <div className="flex justify-center">
+                      <ChatDialog
+                        taskId={activeTask.id}
+                        currentUserId={userId}
+                        otherUserId={activeTask.ngo_id}
+                        otherUserName={activeTask.ngo?.full_name || "NGO"}
+                      />
+                    </div>
+                  )}
+
+                  <Button variant="default" size="lg" className="w-full">
+                    <Navigation className="mr-2 h-5 w-5" />
+                    Navigate to Dropoff
+                  </Button>
+
+                  <div className="pt-4">
+                    <p className="text-sm text-muted-foreground mb-3 text-center">
+                      Arrived at dropoff location?
+                    </p>
+                    <Button
+                      variant="success"
+                      size="lg"
+                      className="w-full"
+                      onClick={handleConfirmDelivery}
+                    >
+                      <CheckCircle className="mr-2 h-5 w-5" />
+                      Confirm Delivery Complete
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </main>
@@ -262,11 +318,12 @@ const VolunteerDashboard = () => {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="bg-card border-b shadow-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MapPin className="h-6 w-6 text-primary" />
             <span className="font-heading text-xl font-bold text-primary">Foodlink</span>
           </div>
+          {userId && <NotificationCenter userId={userId} />}
         </div>
       </header>
 
@@ -333,21 +390,43 @@ const VolunteerDashboard = () => {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t shadow-lg">
-        <div className="grid grid-cols-3 gap-1 p-2">
+        <div className="grid grid-cols-4 gap-1 p-2">
           <Button variant="ghost" className="w-full flex-col h-auto py-3 bg-primary/10">
             <MapPin className="h-5 w-5 mb-1 text-primary" />
             <span className="text-xs text-primary font-medium">Tasks</span>
           </Button>
           <Button variant="ghost" className="w-full flex-col h-auto py-3 opacity-50">
             <Navigation className="h-5 w-5 mb-1" />
-            <span className="text-xs">Active Task</span>
+            <span className="text-xs">Active</span>
           </Button>
-          <Button variant="ghost" className="w-full flex-col h-auto py-3">
+          <Button 
+            variant="ghost" 
+            className="w-full flex-col h-auto py-3"
+            onClick={() => setShowBadges(true)}
+          >
             <User className="h-5 w-5 mb-1" />
             <span className="text-xs">Profile</span>
           </Button>
+          <Button 
+            variant="ghost" 
+            className="w-full flex-col h-auto py-3"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-5 w-5 mb-1" />
+            <span className="text-xs">Sign Out</span>
+          </Button>
         </div>
       </nav>
+
+      {/* Badges Dialog */}
+      <Dialog open={showBadges} onOpenChange={setShowBadges}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Your Achievements</DialogTitle>
+          </DialogHeader>
+          {userId && <BadgesDisplay userId={userId} category="volunteer" />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

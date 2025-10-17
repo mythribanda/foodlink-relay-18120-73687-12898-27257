@@ -4,20 +4,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Users, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Shield } from "lucide-react";
+import { NGOVerificationCard } from "@/components/admin/NGOVerificationCard";
+import { UserManagement } from "@/components/admin/UserManagement";
 
 interface NGOVerification {
   id: string;
   user_id: string;
   organization_name: string;
   registration_id: string;
+  organization_type?: string;
+  description?: string;
+  website?: string;
+  contact_person?: string;
+  contact_email?: string;
+  contact_phone?: string;
   status: string;
+  rejection_reason?: string;
   created_at: string;
+  verified_at?: string;
   profiles: {
     full_name: string;
-    email: string;
   };
 }
 
@@ -133,17 +141,16 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleVerification = async (verificationId: string, status: 'approved' | 'rejected', reason?: string) => {
+  const handleApprove = async (verificationId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
       const { error } = await supabase
         .from('ngo_verifications')
         .update({
-          status,
+          status: 'approved',
           verified_by: user?.id,
           verified_at: new Date().toISOString(),
-          rejection_reason: reason || null,
         })
         .eq('id', verificationId);
 
@@ -151,7 +158,38 @@ const AdminDashboard = () => {
 
       toast({
         title: "Success",
-        description: `NGO verification ${status}`,
+        description: "NGO verification approved",
+      });
+
+      fetchVerifications();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReject = async (verificationId: string, reason: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('ngo_verifications')
+        .update({
+          status: 'rejected',
+          verified_by: user?.id,
+          verified_at: new Date().toISOString(),
+          rejection_reason: reason,
+        })
+        .eq('id', verificationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "NGO verification rejected",
       });
 
       fetchVerifications();
@@ -230,68 +268,18 @@ const AdminDashboard = () => {
               </Card>
             ) : (
               verifications.map((verification) => (
-                <Card key={verification.id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle>{verification.organization_name}</CardTitle>
-                        <CardDescription className="mt-2">
-                          Registration ID: {verification.registration_id}
-                        </CardDescription>
-                      </div>
-                      <Badge
-                        variant={
-                          verification.status === 'approved' ? 'default' :
-                          verification.status === 'rejected' ? 'destructive' :
-                          'secondary'
-                        }
-                      >
-                        {verification.status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
-                        {verification.status === 'approved' && <CheckCircle className="h-3 w-3 mr-1" />}
-                        {verification.status === 'rejected' && <XCircle className="h-3 w-3 mr-1" />}
-                        {verification.status}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 mb-4">
-                      <p><strong>Submitted by:</strong> {verification.profiles?.full_name}</p>
-                      <p><strong>Date:</strong> {new Date(verification.created_at).toLocaleDateString()}</p>
-                    </div>
-                    {verification.status === 'pending' && (
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => handleVerification(verification.id, 'approved')}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Approve
-                        </Button>
-                        <Button
-                          onClick={() => handleVerification(verification.id, 'rejected', 'Invalid documentation')}
-                          variant="destructive"
-                        >
-                          <XCircle className="h-4 w-4 mr-2" />
-                          Reject
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <NGOVerificationCard
+                  key={verification.id}
+                  verification={verification}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                />
               ))
             )}
           </TabsContent>
 
           <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Manage all platform users</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">User management features coming soon...</p>
-              </CardContent>
-            </Card>
+            <UserManagement />
           </TabsContent>
         </Tabs>
       </main>
