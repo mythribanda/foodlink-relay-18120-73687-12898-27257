@@ -114,25 +114,17 @@ const Auth = () => {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: fullName,
+            role: selectedRole,
           }
         }
       });
 
       if (error) throw error;
 
-      if (data.user) {
-        // Insert user role
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({ user_id: data.user.id, role: selectedRole });
-
-        if (roleError) throw roleError;
-
-        toast({
-          title: "Account created!",
-          description: "Welcome to Foodlink. Redirecting to your dashboard...",
-        });
-      }
+      toast({
+        title: "Account created!",
+        description: "Welcome to Foodlink. Redirecting to your dashboard...",
+      });
     } catch (error: any) {
       toast({
         title: "Error",
