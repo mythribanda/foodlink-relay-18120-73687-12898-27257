@@ -15,7 +15,7 @@ export const useAvailableDonations = () => {
         const { data, error } = await supabase
           .from("donations")
           .select("*")
-          .eq("status", "available")
+          .in("status", ["available", "requested"])
           .order("expiry_time", { ascending: true});
 
         if (error) throw error;

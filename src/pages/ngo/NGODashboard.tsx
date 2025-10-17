@@ -161,10 +161,22 @@ const NGODashboard = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-lg">{donation.title}</CardTitle>
-                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                      <Clock className="mr-1 h-3 w-3" />
-                      Urgent
-                    </Badge>
+                    <div className="flex flex-col gap-1">
+                      {donation.status === "requested" && donation.requested_by === userId ? (
+                        <Badge variant="default" className="bg-blue-500">
+                          Requested
+                        </Badge>
+                      ) : donation.status === "requested" ? (
+                        <Badge variant="secondary">
+                          Taken
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                          <Clock className="mr-1 h-3 w-3" />
+                          Urgent
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -202,14 +214,32 @@ const NGODashboard = () => {
                     </div>
                   </div>
 
-                  <Button
-                    className="w-full"
-                    variant="success"
-                    onClick={() => handleRequestDonation(donation.id)}
-                    disabled={requestingId === donation.id}
-                  >
-                    {requestingId === donation.id ? "Requesting..." : "Request Donation"}
-                  </Button>
+                  {donation.status === "requested" && donation.requested_by === userId ? (
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      disabled
+                    >
+                      Awaiting Volunteer
+                    </Button>
+                  ) : donation.status === "requested" ? (
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      disabled
+                    >
+                      Requested by Another NGO
+                    </Button>
+                  ) : (
+                    <Button
+                      className="w-full"
+                      variant="success"
+                      onClick={() => handleRequestDonation(donation.id)}
+                      disabled={requestingId === donation.id}
+                    >
+                      {requestingId === donation.id ? "Requesting..." : "Request Donation"}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}

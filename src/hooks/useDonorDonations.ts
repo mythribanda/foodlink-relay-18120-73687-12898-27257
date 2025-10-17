@@ -14,6 +14,7 @@ export interface Donation {
   estimated_meals: number | null;
   images: string[] | null;
   description: string | null;
+  requested_by: string | null;
 }
 
 export const useDonorDonations = (userId: string | undefined) => {
