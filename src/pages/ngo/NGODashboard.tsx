@@ -9,6 +9,7 @@ import { useAvailableDonations } from "@/hooks/useAvailableDonations";
 import { useProfile } from "@/hooks/useProfile";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { DeliveryStatusCard } from "@/components/DeliveryStatusCard";
 import {
   Select,
   SelectContent,
@@ -64,10 +65,18 @@ const NGODashboard = () => {
 
     setRequestingId(donationId);
     try {
-      // @ts-ignore - Database types will be auto-generated
-      const { error } = await supabase
+      // Get the donation details
+      const { data: donation, error: donationError } = await supabase
         .from("donations")
-        // @ts-ignore
+        .select("*")
+        .eq("id", donationId)
+        .single();
+
+      if (donationError) throw donationError;
+
+      // Update donation status
+      const { error: updateError } = await supabase
+        .from("donations")
         .update({
           status: "requested",
           requested_by: userId,
@@ -75,7 +84,41 @@ const NGODashboard = () => {
         .eq("id", donationId)
         .eq("status", "available");
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Get NGO profile
+      const { data: ngoProfile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", userId)
+        .single();
+
+      // Create volunteer task
+      const { error: taskError } = await supabase
+        .from("volunteer_tasks")
+        .insert({
+          donation_id: donationId,
+          donor_id: donation.donor_id,
+          ngo_id: userId,
+          pickup_address: donation.pickup_address,
+          pickup_latitude: donation.pickup_latitude,
+          pickup_longitude: donation.pickup_longitude,
+          dropoff_address: profile?.address || "NGO Location",
+          dropoff_latitude: profile?.latitude || 0,
+          dropoff_longitude: profile?.longitude || 0,
+          status: "available",
+        });
+
+      if (taskError) throw taskError;
+
+      // Notify donor
+      await supabase.from("notifications").insert({
+        user_id: donation.donor_id,
+        type: "donation_requested",
+        title: "Donation Requested",
+        message: `${ngoProfile?.full_name || "An NGO"} has requested your donation. A volunteer will be assigned soon.`,
+        related_id: donationId,
+      });
 
       toast.success("Donation requested! A volunteer will be notified.");
     } catch (error: any) {
@@ -239,6 +282,11 @@ const NGODashboard = () => {
                     >
                       {requestingId === donation.id ? "Requesting..." : "Request Donation"}
                     </Button>
+                  )}
+
+                  {/* Show delivery status for requested donations */}
+                  {donation.status === "requested" && donation.requested_by === userId && (
+                    <DeliveryStatusCard donationId={donation.id} status={donation.status} />
                   )}
                 </CardContent>
               </Card>

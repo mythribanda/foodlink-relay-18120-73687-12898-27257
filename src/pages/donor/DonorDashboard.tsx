@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useDonorDonations } from "@/hooks/useDonorDonations";
 import { useProfile } from "@/hooks/useProfile";
 import { formatDistanceToNow } from "date-fns";
+import { DeliveryStatusCard } from "@/components/DeliveryStatusCard";
 
 const DonorDashboard = () => {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ const DonorDashboard = () => {
   }
 
   const activeDonations = donations.filter(
-    (d) => d.status === "available" || d.status === "confirmed"
+    (d) => d.status === "available" || d.status === "requested" || d.status === "confirmed"
   );
   const pastDonations = donations.filter(
     (d) => d.status === "completed" || d.status === "cancelled"
@@ -166,6 +167,10 @@ const DonorDashboard = () => {
                           <Clock className="mr-1 h-3 w-3" />
                           Available
                         </Badge>
+                      ) : donation.status === "requested" ? (
+                        <Badge className="bg-blue-500">
+                          Requested
+                        </Badge>
                       ) : (
                         <Badge className="bg-green-50 text-green-700 border-green-200">
                           ✓ Confirmed
@@ -193,6 +198,11 @@ const DonorDashboard = () => {
                         Expires {formatDistanceToNow(new Date(donation.expiry_time), { addSuffix: true })}
                       </p>
                     </div>
+
+                    {/* Show delivery status for requested donations */}
+                    {donation.status === "requested" && userId && (
+                      <DeliveryStatusCard donationId={donation.id} status={donation.status} />
+                    )}
                   </CardContent>
                 </Card>
               ))}
