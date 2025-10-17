@@ -340,51 +340,65 @@ const VolunteerDashboard = () => {
         {/* Available Tasks */}
         <div className="space-y-4">
           <h2 className="font-heading text-2xl font-bold">Available Tasks</h2>
-          {tasks.map((task) => (
-            <Card key={task.id} className="shadow-card hover:shadow-card-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-lg">{task.foodType}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-start gap-2">
-                    <div className="bg-primary/10 rounded-full p-2 mt-0.5">
-                      <MapPin className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Pickup</p>
-                      <p className="font-medium">{task.pickup}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="bg-secondary/10 rounded-full p-2 mt-0.5">
-                      <Navigation className="h-4 w-4 text-secondary" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Deliver To</p>
-                      <p className="font-medium">{task.dropoff}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-4 text-sm">
-                  <div>
-                    <Badge variant="outline">{task.distance}</Badge>
-                  </div>
-                  <div>
-                    <Badge variant="outline">Est. {task.duration}</Badge>
-                  </div>
-                </div>
-                <Button
-                  variant="urgent"
-                  size="lg"
-                  className="w-full"
-                  onClick={() => handleAcceptTask(task)}
-                >
-                  Accept Task
-                </Button>
+          {tasks.filter(t => t.status === 'available').length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                No available tasks at the moment
               </CardContent>
             </Card>
-          ))}
+          ) : (
+            tasks.filter(t => t.status === 'available').map((task) => (
+              <Card key={task.id} className="shadow-card hover:shadow-card-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-lg">Food Delivery Task</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    From: {task.donor?.full_name || 'Donor'} → To: {task.ngo?.full_name || 'NGO'}
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-primary/10 rounded-full p-2 mt-0.5">
+                        <MapPin className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-muted-foreground">Pickup</p>
+                        <p className="font-medium">{task.pickup_address}</p>
+                        {task.donor?.phone && (
+                          <p className="text-xs text-muted-foreground">Phone: {task.donor.phone}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="bg-secondary/10 rounded-full p-2 mt-0.5">
+                        <Navigation className="h-4 w-4 text-secondary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-muted-foreground">Deliver To</p>
+                        <p className="font-medium">{task.dropoff_address}</p>
+                        {task.ngo?.phone && (
+                          <p className="text-xs text-muted-foreground">Phone: {task.ngo.phone}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {task.estimated_distance_km && (
+                    <div className="flex gap-4 text-sm">
+                      <Badge variant="outline">{task.estimated_distance_km.toFixed(1)} km</Badge>
+                    </div>
+                  )}
+                  <Button
+                    variant="urgent"
+                    size="lg"
+                    className="w-full"
+                    onClick={() => handleAcceptTask(task)}
+                  >
+                    Accept Task
+                  </Button>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       </main>
 

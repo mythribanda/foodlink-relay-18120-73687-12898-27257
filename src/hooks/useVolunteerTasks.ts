@@ -34,20 +34,44 @@ export const useVolunteerTasks = (volunteerId?: string) => {
 
   const fetchTasks = async () => {
     try {
-      const { data, error } = await supabase
+      // First get tasks
+      const { data: tasksData, error: tasksError } = await supabase
         .from('volunteer_tasks')
-        .select(`
-          *,
-          donor:profiles!volunteer_tasks_donor_id_fkey(full_name, phone),
-          ngo:profiles!volunteer_tasks_ngo_id_fkey(full_name, phone)
-        `)
+        .select('*')
         .or(`status.eq.available,volunteer_id.eq.${volunteerId}`)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setTasks(data || []);
+      if (tasksError) throw tasksError;
+
+      // Then fetch related profile data
+      if (tasksData && tasksData.length > 0) {
+        const donorIds = [...new Set(tasksData.map(t => t.donor_id))];
+        const ngoIds = [...new Set(tasksData.map(t => t.ngo_id))];
+        
+        const { data: donors } = await supabase
+          .from('profiles')
+          .select('id, full_name, phone')
+          .in('id', donorIds);
+
+        const { data: ngos } = await supabase
+          .from('profiles')
+          .select('id, full_name, phone')
+          .in('id', ngoIds);
+
+        // Map profiles to tasks
+        const enrichedTasks = tasksData.map(task => ({
+          ...task,
+          donor: donors?.find(d => d.id === task.donor_id),
+          ngo: ngos?.find(n => n.id === task.ngo_id)
+        }));
+
+        setTasks(enrichedTasks);
+      } else {
+        setTasks([]);
+      }
     } catch (error) {
       console.error('Error fetching tasks:', error);
+      setTasks([]);
     } finally {
       setLoading(false);
     }
