@@ -13,6 +13,7 @@ import { useBadges } from "@/hooks/useBadges";
 import { ChatDialog } from "@/components/ChatDialog";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { VolunteerProfile } from "@/components/VolunteerProfile";
+import { RouteMap } from "@/components/RouteMap";
 
 const VolunteerDashboard = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const VolunteerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTask, setActiveTask] = useState<any>(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [volunteerLocation, setVolunteerLocation] = useState<{ lat: number; lng: number } | null>(null);
   
   const { tasks, refetch: refetchTasks } = useVolunteerTasks(userId);
   const { profile } = useProfile(userId);
@@ -27,7 +29,29 @@ const VolunteerDashboard = () => {
 
   useEffect(() => {
     checkAuth();
+    getVolunteerLocation();
   }, []);
+
+  const getVolunteerLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setVolunteerLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          // Default to a mock location if geolocation fails
+          setVolunteerLocation({ lat: 28.6139, lng: 77.2090 }); // Delhi
+        }
+      );
+    } else {
+      // Fallback location
+      setVolunteerLocation({ lat: 28.6139, lng: 77.2090 });
+    }
+  };
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -198,13 +222,29 @@ const VolunteerDashboard = () => {
 
         {/* Active Task Flow */}
         <main className="container mx-auto px-4 py-6 max-w-2xl space-y-6">
-          {/* Map Placeholder */}
-          <div className="bg-muted rounded-lg h-64 flex items-center justify-center border-2 border-border">
-            <div className="text-center">
-              <MapPin className="h-12 w-12 mx-auto mb-2 text-primary" />
-              <p className="text-sm text-muted-foreground">Route visualization</p>
+          {/* Route Map */}
+          {volunteerLocation && activeTask.pickup_latitude && activeTask.pickup_longitude && 
+           activeTask.dropoff_latitude && activeTask.dropoff_longitude ? (
+            <RouteMap
+              volunteerLocation={volunteerLocation}
+              donorLocation={{ 
+                lat: activeTask.pickup_latitude, 
+                lng: activeTask.pickup_longitude 
+              }}
+              ngoLocation={{ 
+                lat: activeTask.dropoff_latitude, 
+                lng: activeTask.dropoff_longitude 
+              }}
+              status={activeTask.status === "assigned" ? "pending" : "picked_up"}
+            />
+          ) : (
+            <div className="bg-muted rounded-lg h-64 flex items-center justify-center border-2 border-border">
+              <div className="text-center">
+                <MapPin className="h-12 w-12 mx-auto mb-2 text-primary" />
+                <p className="text-sm text-muted-foreground">Loading route...</p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Step 1: Pickup */}
           <Card className="shadow-card-lg border-2 border-primary">
