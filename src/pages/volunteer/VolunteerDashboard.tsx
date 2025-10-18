@@ -12,14 +12,14 @@ import { useProfile } from "@/hooks/useProfile";
 import { useBadges } from "@/hooks/useBadges";
 import { ChatDialog } from "@/components/ChatDialog";
 import { NotificationCenter } from "@/components/NotificationCenter";
-import { BadgesDisplay } from "@/components/BadgesDisplay";
+import { VolunteerProfile } from "@/components/VolunteerProfile";
 
 const VolunteerDashboard = () => {
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string>();
   const [loading, setLoading] = useState(true);
   const [activeTask, setActiveTask] = useState<any>(null);
-  const [showBadges, setShowBadges] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   
   const { tasks, refetch: refetchTasks } = useVolunteerTasks(userId);
   const { profile } = useProfile(userId);
@@ -416,7 +416,7 @@ const VolunteerDashboard = () => {
           <Button 
             variant="ghost" 
             className="w-full flex-col h-auto py-3"
-            onClick={() => setShowBadges(true)}
+            onClick={() => setShowProfile(true)}
           >
             <User className="h-5 w-5 mb-1" />
             <span className="text-xs">Profile</span>
@@ -432,13 +432,13 @@ const VolunteerDashboard = () => {
         </div>
       </nav>
 
-      {/* Badges Dialog */}
-      <Dialog open={showBadges} onOpenChange={setShowBadges}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      {/* Profile Dialog */}
+      <Dialog open={showProfile} onOpenChange={setShowProfile}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Your Achievements</DialogTitle>
+            <DialogTitle className="font-heading text-2xl">Your Profile & Stats</DialogTitle>
           </DialogHeader>
-          {userId && <BadgesDisplay userId={userId} category="volunteer" />}
+          {userId && <VolunteerProfile userId={userId} />}
         </DialogContent>
       </Dialog>
     </div>

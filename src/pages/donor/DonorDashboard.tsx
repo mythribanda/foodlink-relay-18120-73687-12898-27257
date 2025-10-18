@@ -201,7 +201,7 @@ const DonorDashboard = () => {
 
                     {/* Show delivery status for requested donations */}
                     {donation.status === "requested" && userId && (
-                      <DeliveryStatusCard donationId={donation.id} status={donation.status} />
+                      <DeliveryStatusCard donationId={donation.id} status={donation.status} currentUserId={userId} />
                     )}
                   </CardContent>
                 </Card>

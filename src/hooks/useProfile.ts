@@ -13,6 +13,9 @@ export interface Profile {
   latitude?: number;
   longitude?: number;
   phone?: string;
+  total_deliveries?: number;
+  bio?: string;
+  avatar_url?: string;
 }
 
 export const useProfile = (userId: string | undefined) => {
@@ -28,7 +31,7 @@ export const useProfile = (userId: string | undefined) => {
         // @ts-ignore - Database types will be auto-generated
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, full_name, total_donations, total_meals_donated, co2_saved_kg, average_rating, address, latitude, longitude, phone")
+          .select("id, full_name, total_donations, total_meals_donated, co2_saved_kg, average_rating, address, latitude, longitude, phone, total_deliveries, bio, avatar_url")
           .eq("id", userId)
           .single();
 

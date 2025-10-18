@@ -4,13 +4,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Phone, MapPin, User, Clock, CheckCircle, Package } from "lucide-react";
+import { KudosButton } from "./KudosButton";
 
 interface DeliveryStatusProps {
   donationId: string;
   status: string;
+  currentUserId?: string;
 }
 
-export const DeliveryStatusCard = ({ donationId, status }: DeliveryStatusProps) => {
+export const DeliveryStatusCard = ({ donationId, status, currentUserId }: DeliveryStatusProps) => {
   const [taskInfo, setTaskInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -161,6 +163,19 @@ export const DeliveryStatusCard = ({ donationId, status }: DeliveryStatusProps) 
               </div>
             )}
           </div>
+
+          {/* Kudos Button - Show after delivery is complete */}
+          {taskInfo.status === 'completed' && taskInfo.volunteer_id && currentUserId && (
+            <div className="pt-3 border-t">
+              <p className="text-xs text-muted-foreground mb-2">Appreciate their work?</p>
+              <KudosButton
+                taskId={taskInfo.id}
+                recipientId={taskInfo.volunteer_id}
+                recipientName={taskInfo.volunteer?.full_name || 'Volunteer'}
+                senderId={currentUserId}
+              />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

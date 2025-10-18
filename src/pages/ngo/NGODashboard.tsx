@@ -10,6 +10,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { DeliveryStatusCard } from "@/components/DeliveryStatusCard";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import {
   Select,
   SelectContent,
@@ -157,6 +158,7 @@ const NGODashboard = () => {
             </div>
             <div className="flex items-center gap-3">
               <h1 className="font-heading text-lg font-semibold">Hi, {profile?.full_name || "Friend"}!</h1>
+              {userId && <NotificationCenter userId={userId} />}
               <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sign Out">
                 <LogOut className="h-5 w-5" />
               </Button>
@@ -286,7 +288,7 @@ const NGODashboard = () => {
 
                   {/* Show delivery status for requested donations */}
                   {donation.status === "requested" && donation.requested_by === userId && (
-                    <DeliveryStatusCard donationId={donation.id} status={donation.status} />
+                    <DeliveryStatusCard donationId={donation.id} status={donation.status} currentUserId={userId} />
                   )}
                 </CardContent>
               </Card>
