@@ -20,10 +20,19 @@ export const Leaderboard = ({ userId }: LeaderboardProps) => {
 
   const fetchLeaderboard = async () => {
     try {
-      // Get top volunteers by deliveries
+      // Get top volunteers by deliveries (only users with 'volunteer' role)
       const { data: volunteers, error } = await supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, total_deliveries, co2_saved_kg, average_rating')
+        .select(`
+          id, 
+          full_name, 
+          avatar_url, 
+          total_deliveries, 
+          co2_saved_kg, 
+          average_rating,
+          user_roles!inner(role)
+        `)
+        .eq('user_roles.role', 'volunteer')
         .order('total_deliveries', { ascending: false })
         .limit(10);
 
@@ -35,7 +44,12 @@ export const Leaderboard = ({ userId }: LeaderboardProps) => {
       if (userId) {
         const { data: allVolunteers } = await supabase
           .from('profiles')
-          .select('id, total_deliveries')
+          .select(`
+            id, 
+            total_deliveries,
+            user_roles!inner(role)
+          `)
+          .eq('user_roles.role', 'volunteer')
           .order('total_deliveries', { ascending: false });
 
         const rank = allVolunteers?.findIndex((v) => v.id === userId);
