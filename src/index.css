@@ -18,19 +18,20 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 20%;
 
-    /* Trust Blue - Primary brand color */
-    --primary: 206 100% 31%;
+    /* Trust Blue - Deeper, modern primary */
+    --primary: 210 100% 28%;
     --primary-foreground: 0 0% 100%;
 
     /* Success Green - Food & confirmations */
     --secondary: 122 39% 49%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 150 10% 96%;
+    /* Subtle grey for card backgrounds */
+    --muted: 210 40% 98%;
     --muted-foreground: 0 0% 45%;
 
-    /* Action Orange - Urgent CTAs */
-    --accent: 36 100% 50%;
+    /* Burnt Orange - Softer, sophisticated accent */
+    --accent: 24 96% 54%;
     --accent-foreground: 0 0% 100%;
 
     /* Error/Alert Red */
@@ -39,23 +40,24 @@ All colors MUST be HSL.
 
     --border: 150 10% 90%;
     --input: 150 10% 90%;
-    --ring: 206 100% 31%;
+    --ring: 210 100% 28%;
 
     --radius: 0.75rem;
     
     /* Custom Foodlink tokens */
-    --urgent: 36 100% 50%;
+    --urgent: 24 96% 54%;
     --urgent-foreground: 0 0% 100%;
     
     --success: 122 39% 49%;
     --success-foreground: 0 0% 100%;
     
-    --trust: 206 100% 31%;
+    --trust: 210 100% 28%;
     --trust-foreground: 0 0% 100%;
     
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    /* Refined shadows - softer and more subtle */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 20px 0 rgba(0, 0, 0, 0.1);
 
     --sidebar-background: 0 0% 98%;
 
@@ -84,7 +86,7 @@ All colors MUST be HSL.
     --popover: 0 0% 12%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 206 100% 45%;
+    --primary: 210 100% 38%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 122 39% 45%;
@@ -93,7 +95,7 @@ All colors MUST be HSL.
     --muted: 0 0% 20%;
     --muted-foreground: 0 0% 65%;
 
-    --accent: 36 100% 55%;
+    --accent: 24 96% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 63% 45%;
@@ -101,11 +103,11 @@ All colors MUST be HSL.
 
     --border: 0 0% 20%;
     --input: 0 0% 20%;
-    --ring: 206 100% 45%;
+    --ring: 210 100% 38%;
     
-    --urgent: 36 100% 55%;
+    --urgent: 24 96% 60%;
     --success: 122 39% 45%;
-    --trust: 206 100% 45%;
+    --trust: 210 100% 38%;
   }
 }
 
@@ -126,11 +128,26 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  /* Shadow utilities */
   .shadow-card {
     box-shadow: var(--shadow-md);
   }
   
   .shadow-card-lg {
     box-shadow: var(--shadow-lg);
+  }
+  
+  /* Smooth transitions for interactive elements */
+  .transition-smooth {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Hover scale effect */
+  .hover-scale {
+    transition: transform 0.2s ease;
+  }
+  
+  .hover-scale:hover {
+    transform: translateY(-2px);
   }
 }
